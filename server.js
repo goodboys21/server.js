@@ -2,15 +2,21 @@ import express from "express";
 import multer from "multer";
 import crypto from "crypto";
 import fetch from "node-fetch";
+import express from "express";
+import multer from "multer";
+import crypto from "crypto";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+
+dotenv.config(); // load .env
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-const GITHUB_TOKEN = "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"; // isi dengan token GitHub lo
-const GITHUB_REPO = "codegood21/file"; // format: user/reponame
-const GITHUB_BRANCH = "main"; // branch repo
-const BASE_URL = "https://s.cloudgood.xyz/file"; // url custom lo (reverse proxy ke raw.githubusercontent)
-
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_REPO = process.env.GITHUB_REPO;
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main";
+const BASE_URL = process.env.BASE_URL;
 function generateId() {
   return crypto.randomBytes(3).toString("hex").slice(0, 5); // 5 digit unik
 }
