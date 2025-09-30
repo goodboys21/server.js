@@ -57,7 +57,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     const contentBase64 = file.buffer.toString("base64");
 
     // push file ke github
-    const githubApi = `https://api.github.com/repos/${github.owner}/${github.repo}/contents/f/${newFileName}`;
+    const githubApi = `https://api.github.com/repos/${github.owner}/${github.repo}/contents/file/${newFileName}`;
     const uploadRes = await fetch(githubApi, {
       method: "PUT",
       headers: {
