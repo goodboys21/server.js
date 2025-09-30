@@ -2,13 +2,9 @@ import express from "express";
 import multer from "multer";
 import crypto from "crypto";
 import fetch from "node-fetch";
-import express from "express";
-import multer from "multer";
-import crypto from "crypto";
-import fetch from "node-fetch";
 import dotenv from "dotenv";
 
-dotenv.config(); // load .env
+dotenv.config(); // lokal aja kepake
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -17,6 +13,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main";
 const BASE_URL = process.env.BASE_URL;
+
 function generateId() {
   return crypto.randomBytes(3).toString("hex").slice(0, 5); // 5 digit unik
 }
@@ -34,7 +31,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     const content = req.file.buffer.toString("base64");
 
-    // Upload ke GitHub via API
+    // Upload ke GitHub
     const githubUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`;
     const uploadRes = await fetch(githubUrl, {
       method: "PUT",
@@ -68,4 +65,5 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log("API running on http://localhost:3000"));
+// ❌ jangan pake app.listen di Vercel
+export default app;
