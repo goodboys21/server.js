@@ -1,22 +1,15 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
+    { "src": "server.js", "use": "@vercel/node" }
   ],
   "routes": [
-    {
-      "src": "/upload",
-      "methods": ["POST"],
-      "dest": "server.js"
-    }
+    { "src": "/upload", "methods": ["POST"], "dest": "server.js" }
   ],
   "env": {
-    "GITHUB_TOKEN": "@github_token",
-    "GITHUB_REPO": "@github_repo",
-    "GITHUB_BRANCH": "@github_branch",
+    "GITHUB_TOKEN": "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",
+    "GITHUB_REPO": "codegood21/file",
+    "GITHUB_BRANCH": "main",
     "BASE_URL": "https://s.cloudgood.xyz/file"
   }
 }
