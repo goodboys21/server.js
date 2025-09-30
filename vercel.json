@@ -17,6 +17,6 @@
     "GITHUB_TOKEN": "@github_token",
     "GITHUB_REPO": "@github_repo",
     "GITHUB_BRANCH": "@github_branch",
-    "BASE_URL": "https://files.cloudgood.xyz/f"
+    "BASE_URL": "https://s.cloudgood.xyz/file"
   }
 }
