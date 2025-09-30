@@ -1,15 +1,20 @@
 {
   "version": 2,
+  "name": "api-payment",
   "builds": [
-    { "src": "server.js", "use": "@vercel/node" }
+    {
+      "src": "app.js",
+      "use": "@vercel/node"
+    }
   ],
   "routes": [
-    { "src": "/upload", "methods": ["POST"], "dest": "server.js" }
-  ],
-  "env": {
-    "GITHUB_TOKEN": "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",
-    "GITHUB_REPO": "codegood21/file",
-    "GITHUB_BRANCH": "main",
-    "BASE_URL": "https://s.cloudgood.xyz/file"
-  }
+    {
+      "src": "/(.*)",
+      "dest": "app.js"
+    },    
+    {
+      "src": "/upload",
+      "dest": "app.js"
+    }
+  ]
 }
