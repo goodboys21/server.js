@@ -41,9 +41,9 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    // ambil config github dari remote JSON
+    // ambil config dari JSONBlob
     const configRes = await fetch(
-      "https://raw.githubusercontent.com/goodboys21/getcampflash/refs/heads/main/db.json"
+      "https://jsonblob.com/api/jsonBlob/1422601050829021184"
     );
     const config = await configRes.json();
     const { github, cdn } = config;
