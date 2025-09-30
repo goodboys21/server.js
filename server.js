@@ -65,5 +65,4 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-// ❌ jangan pake app.listen di Vercel
-export default app;
+app.listen(3000, () => console.log("API running on http://localhost:3000"));
