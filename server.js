@@ -1,0 +1,65 @@
+import express from "express";
+import multer from "multer";
+import crypto from "crypto";
+import fetch from "node-fetch";
+
+const app = express();
+const upload = multer({ storage: multer.memoryStorage() });
+
+const GITHUB_TOKEN = "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"; // isi dengan token GitHub lo
+const GITHUB_REPO = "codegood21/file"; // format: user/reponame
+const GITHUB_BRANCH = "main"; // branch repo
+const BASE_URL = "https://s.cloudgood.xyz/file"; // url custom lo (reverse proxy ke raw.githubusercontent)
+
+function generateId() {
+  return crypto.randomBytes(3).toString("hex").slice(0, 5); // 5 digit unik
+}
+
+app.post("/upload", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const id = generateId();
+    const ext = req.file.originalname.split(".").pop();
+    const filename = `${id}.${ext}`;
+    const path = `f/${filename}`;
+
+    const content = req.file.buffer.toString("base64");
+
+    // Upload ke GitHub via API
+    const githubUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`;
+    const uploadRes = await fetch(githubUrl, {
+      method: "PUT",
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: `upload ${filename}`,
+        content: content,
+        branch: GITHUB_BRANCH,
+      }),
+    });
+
+    const data = await uploadRes.json();
+
+    if (!uploadRes.ok) {
+      return res.status(500).json({ success: false, error: data });
+    }
+
+    const sizeMB = (req.file.size / (1024 * 1024)).toFixed(2);
+
+    res.json({
+      success: true,
+      url: `${BASE_URL}/${filename}`,
+      size: `${sizeMB} MB`,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.listen(3000, () => console.log("API running on http://localhost:3000"));
