@@ -83,7 +83,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     // hasil final
     res.json({
       success: true,
-      url: `${cdn.base_url}/${newFileName}`,
+      url: `https://raw.githubusercontent.com/codegood21/file/refs/heads/main/${newFileName}`,
       size: formatBytes(file.size),
     });
   } catch (err) {
