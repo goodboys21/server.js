@@ -2,10 +2,9 @@ const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const fs = require('fs');
-const path = require('path');
 const fetch = require('node-fetch');
 const FormData = require('form-data');
+const path = require('path');
 
 const upload = multer();
 const app = express();
@@ -19,33 +18,23 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-// fungsi upload ke tmpfiles
-async function uploadToTmpfiles(buffer, ext = '.bin') {
-  const origin = 'https://tmpfiles.org';
-  const r1 = await fetch(origin);
-  const cookie = r1.headers.raw()['set-cookie'].map(v => v.split('; ')[0]).join('; ');
-  const html = await r1.text();
-  const token = html.match(/token" value="(.+?)"/)?.[1];
-  if (!token) throw new Error('Gagal mendapatkan token upload');
-
-  const fileName = `${Date.now()}${ext}`;
+async function uploadToUguu(buffer, originalName) {
   const formData = new FormData();
-  formData.append('_token', token);
-  formData.append('upload', 'Upload');
-  formData.append('file', new Blob([buffer]), fileName);
+  const fileName = path.basename(originalName);
+  formData.append('files[]', buffer, fileName);
 
-  const r2 = await fetch(origin, {
+  const res = await fetch('https://uguu.se/upload', {
     method: 'POST',
-    headers: { cookie },
     body: formData
   });
 
-  const html2 = await r2.text();
-  const url = html2.match(/URL(?:.+?)href="(.+?)"/s)?.[1];
-  if (!url) throw new Error('Gagal mendapatkan URL download');
-  const size = html2.match(/Size(?:.+?)<td>(.+?)<\/td>/s)?.[1] || 'Unknown';
+  if (!res.ok) throw new Error(`Upload gagal: ${res.status} ${res.statusText}`);
 
-  return { url, size };
+  const json = await res.json();
+  if (!json.success || !json.files?.length) throw new Error('Gagal mendapatkan URL file');
+
+  const file = json.files[0];
+  return { url: file.url, size: formatBytes(file.size) };
 }
 
 app.use(cors());
@@ -57,9 +46,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
     const file = req.file;
-    const ext = path.extname(file.originalname) || '.bin';
 
-    const result = await uploadToTmpfiles(file.buffer, ext);
+    const result = await uploadToUguu(file.buffer, file.originalname);
 
     res.json({
       success: true,
