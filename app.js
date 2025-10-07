@@ -2,19 +2,16 @@ const express = require('express');
 const crypto = require('crypto');
 const multer = require('multer');
 const cors = require('cors');
-const AdmZip = require('adm-zip');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
-const fflate = require('fflate');
-const qs = require('qs');
-const cheerio = require('cheerio');
 const FormData = require('form-data');
-const axios = require('axios');
+const { fileTypeFromBuffer } = require('file-type');
 const fs = require('fs');
 const path = require('path');
-const mime = require('mime-types'); 
+const mime = require('mime-types');
 const { Readable } = require('stream');
 const upload = multer();
+
 function generateId() {
   return Math.random().toString(36).substring(2, 7);
 }
@@ -37,53 +34,47 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json({ limit: '100mb' }));
 
+// fungsi upload ke top4top
+async function uploadToTop4Top(buffer) {
+  const origin = 'https://top4top.io';
+  const f = await fileTypeFromBuffer(buffer);
+  if (!f) throw new Error('Gagal mendapatkan ekstensi file/buffer');
+
+  const data = new FormData();
+  const fileName = `${Date.now()}.${f.ext}`;
+  data.append('file_1_', new Blob([buffer]), fileName);
+  data.append('submitr', '[ رفع الملفات ]');
+
+  console.log('uploading file.. ' + fileName);
+  const res = await fetch(origin + '/index.php', { method: 'POST', body: data });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
+  const html = await res.text();
+  const matches = html.matchAll(/<input readonly="readonly" class="all_boxes" onclick="this.select\(\);" type="text" value="(.+?)" \/>/g);
+  const arr = Array.from(matches);
+  if (!arr.length) throw new Error('Gagal mengupload file');
+
+  const downloadUrl = arr.map(v => v[1]).find(v => v.endsWith(f.ext));
+  if (!downloadUrl) throw new Error('Tidak menemukan URL hasil upload');
+
+  return downloadUrl;
+}
+
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    // ambil config dari JSONBlob
-    const configRes = await fetch(
-      "https://jsonblob.com/api/jsonBlob/1422601050829021184"
-    );
-    const config = await configRes.json();
-    const { github, cdn } = config;
-
     const file = req.file;
-    const ext = path.extname(file.originalname) || ".bin";
     const randomId = generateId();
+    const ext = path.extname(file.originalname) || ".bin";
     const newFileName = `${randomId}${ext}`;
 
-    // convert buffer ke base64 untuk upload ke github
-    const contentBase64 = file.buffer.toString("base64");
+    // upload ke top4top
+    const uploadedUrl = await uploadToTop4Top(file.buffer);
 
-    // push file ke github
-    const githubApi = `https://api.github.com/repos/${github.owner}/${github.repo}/contents/${newFileName}`;
-    const uploadRes = await fetch(githubApi, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${github.token}`,
-        "Content-Type": "application/json",
-        "User-Agent": "cloudgood-uploader",
-      },
-      body: JSON.stringify({
-        message: `Upload ${newFileName}`,
-        content: contentBase64,
-        branch: github.branch,
-      }),
-    });
-
-    const uploadJson = await uploadRes.json();
-    if (!uploadRes.ok) {
-      return res.status(400).json({
-        success: false,
-        error: uploadJson.message || "Failed to upload to GitHub",
-      });
-    }
-
-    // hasil final
     res.json({
       success: true,
-      url: `https://raw.githubusercontent.com/codegood21/file/refs/heads/main/${newFileName}`,
+      url: uploadedUrl,
       size: formatBytes(file.size),
     });
   } catch (err) {
@@ -95,4 +86,3 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server berjalan pada http://localhost:${PORT}`);
 });
-        
