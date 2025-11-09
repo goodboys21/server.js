@@ -84,7 +84,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         url: result.url,
         size: result.size
       });
-    }, 4000);
+    }, 10000);
 
   } catch (err) {
     console.error(err);
