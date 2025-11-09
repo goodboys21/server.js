@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clugo</title>
+    <style>
+        /* --- Import Font (Poppins & Fira Code) --- */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap');
+
+        /* --- Global Reset & Base Styles --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0f172a; /* Dark Blue-Black Background */
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* --- Main Content Wrapper (Holds BOTH cards) --- */
+        .content-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+
+        /* --- Card 1: The Uploader --- */
+        .uploader-card {
+            background: #1e293b; /* Dark Blue-Gray Card Background */
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 100%;
+            max-width: 480px;
+            transition: all 0.3s ease;
+            position: relative; 
+            overflow: hidden;
+        }
+
+        .uploader-card h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #3b82f6, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .uploader-card .main-subtitle {
+            font-size: 1em;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+        }
+
+        /* --- Drag & Drop Area --- */
+        .drag-drop-area {
+            border: 2px dashed #3b82f6;
+            border-radius: 12px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+            position: relative;
+        }
+
+        .drag-drop-area.active {
+            border-color: #60a5fa;
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+        }
+
+        .drag-drop-area .icon {
+            background-image: url('https://files.clugo.my.id/file/sNd.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 90px;
+            height: 90px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .drag-drop-area .text {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .drag-drop-area .subtext {
+            font-size: 0.85em;
+            color: #b0b0b0;
+        }
+
+        #file-input {
+            display: none;
+        }
+        
+        .max-size-text {
+            font-size: 0.85em;
+            color: #a0a0a0;
+            margin-top: 15px;
+        }
+        
+        /* --- Kontainer untuk Spinner & Result --- */
+        .upload-progress-container {
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .loading-spinner {
+            display: none; /* Sembunyi by default */
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255, 255, 255, 0.2);
+            border-top: 6px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            margin: 0 auto; /* Tengah horizontal */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- [BARU] Kotak Result Detail (Mirip Foto) --- */
+        .result-box-wrapper {
+            display: none; /* Sembunyi by default */
+            background: #0f172a; /* Lebih gelap, mirip foto */
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .result-details {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .result-details li {
+            font-size: 0.9em;
+            color: #c0c0c0;
+            margin-bottom: 8px;
+            word-wrap: break-word; /* Biar URL/nama file panjang gak rusak */
+        }
+        
+        .result-details li:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-details li strong {
+            color: #ffffff;
+            min-width: 90px; /* Biar rapi */
+            display: inline-block;
+        }
+        
+        .result-details li a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .result-details li a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- [BARU] Teks Status (Sukses/Error) --- */
+        .upload-status-text {
+            display: none; /* Sembunyi by default */
+            font-size: 1em;
+            font-weight: 600;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .upload-status-text.success {
+            color: #34d399; /* Hijau (Mirip foto) */
+        }
+        
+        .upload-status-text.error {
+            color: #f87171; /* Merah */
+        }
+
+
+        /* --- Card 2: The API Info --- */
+        .api-card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 480px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .api-card h3 {
+            color: #60a5fa;
+            font-weight: 600;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        
+        .api-card h4 {
+            color: #c0c0c0;
+            font-weight: 500;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #e0e0e0;
+            overflow-x: auto;
+            white-space: pre;
+            margin-bottom: 20px;
+        }
+        
+        .code-block:last-child {
+            margin-bottom: 0;
+        }
+
+        /* --- Footer --- */
+        .footer {
+            margin-top: 50px;
+            font-size: 0.85em;
+            color: #64748b;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="content-wrapper">
+        <main class="uploader-card">
+            <h1>Clugo</h1>
+            <p class="main-subtitle">Drag & drop your files here or click to select.</p>
+
+            <label for="file-input" class="drag-drop-area" id="drag-drop-area">
+                <div class="icon"></div>
+                <div class="text">Drag & Drop your file here</div>
+                <div class="subtext">or click to browse</div>
+            </label>
+            
+            <input type="file" id="file-input">
+            
+            <p class="max-size-text">Max file size: 25MB</p>
+            
+            <div class="upload-progress-container" id="progress-container">
+                <div class="loading-spinner" id="loading-spinner"></div>
+                
+                <div class="result-box-wrapper" id="result-box-wrapper">
+                    <ul class="result-details">
+                        <li><strong>File Name:</strong> <span id="res-filename"></span></li>
+                        <li><strong>Size:</strong> <span id="res-filesize"></span></li>
+                        <li><strong>Type:</strong> <span id="res-filetype"></span></li>
+                        <li><strong>Upload Date:</strong> <span id="res-filedate"></span></li>
+                        <li><strong>File URL:</strong> <a id="res-fileurl" href="#" target="_blank" rel="noopener noreferrer"></a></li>
+                    </ul>
+                </div>
+
+                <p class="upload-status-text" id="upload-status-text"></p>
+            </div>
+            
+        </main>
+
+        <section class="api-card">
+            <h3>Use with API</h3>
+            
+            <h4>cURL Example (to server-jees2):</h4>
+            <pre class="code-block"><code>curl -X POST "https://server-jees2.vercel.app/upload" \
+     -F "file=@/path/to/your/file.jpg"</code></pre>
+
+            <h4>Success Response (from server-jees2):</h4>
+            <pre class="code-block"><code>{
+  "status": 200,
+  "creator": "JeeS",
+  "result": {
+    "name": "file.jpg",
+    "size": 123456,
+    "url": "https://cdn.server.com/file/j8sKqP.jpg"
+  }
+}</code></pre>
+        </section>
+    </div>
+
+    <footer class="footer">
+        © 2025 Clugo.my.id
+    </footer>
+
+    <script>
+        // --- Ambil elemen ---
+        const dragDropArea = document.getElementById('drag-drop-area');
+        const fileInput = document.getElementById('file-input');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        
+        // --- [BARU] Ambil elemen-elemen result baru ---
+        const resultBoxWrapper = document.getElementById('result-box-wrapper');
+        const uploadStatusText = document.getElementById('upload-status-text');
+        
+        // --- [BARU] Ambil elemen detail di dalam result box ---
+        const resFilename = document.getElementById('res-filename');
+        const resFilesize = document.getElementById('res-filesize');
+        const resFiletype = document.getElementById('res-filetype');
+        const resFiledate = document.getElementById('res-filedate');
+        const resFileurl = document.getElementById('res-fileurl');
+        
+        
+        const UPLOAD_API_URL = "https://server-jees2.vercel.app/upload";
+
+        dragDropArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFileUpload(file);
+        });
+
+        // --- Event Drag & Drop (Tidak berubah) ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dragDropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false); 
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dragDropArea.addEventListener(eventName, () => dragDropArea.classList.add('active'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dragDropArea.addEventListener(eventName, () => dragDropArea.classList.remove('active'), false);
+        });
+
+        dragDropArea.addEventListener('drop', (e) => {
+            const file = e.dataTransfer.files[0];
+            if (file) handleFileUpload(file);
+        }, false);
+
+        // --- [MODIFIKASI] Fungsi Upload Utama (Async/Await dengan Fetch) ---
+        async function handleFileUpload(file) {
+            
+            // 1. Reset UI (Sembunyikan hasil & status lama)
+            resultBoxWrapper.style.display = 'none';    
+            uploadStatusText.style.display = 'none';
+            uploadStatusText.className = 'upload-status-text';
+            
+            // 2. Tampilkan Spinner
+            loadingSpinner.style.display = 'block'; 
+
+            // 3. Buat FormData untuk dikirim
+            const formData = new FormData();
+            formData.append("file", file); // Key "file"
+
+            try {
+                // 4. Kirim file menggunakan FETCH
+                const response = await fetch(UPLOAD_API_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                // 5. Sembunyikan Spinner
+                loadingSpinner.style.display = 'none';
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Upload failed');
+                }
+                
+                // Cari URL di dalam respon
+                const fileUrl = data.url || (data.result ? data.result.url : null);
+                
+                if (!fileUrl) {
+                    throw new Error("File URL not found in server response.");
+                }
+
+                // 6. [BARU] Isi detail box (dari data 'file' dan respon 'data')
+                resFilename.textContent = file.name;
+                resFilesize.textContent = (file.size / 1024).toFixed(2) + " KB";
+                resFiletype.textContent = file.type || "N/A";
+                resFiledate.textContent = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+                resFileurl.textContent = fileUrl;
+                resFileurl.href = fileUrl;
+
+                // 7. [BARU] Tampilkan detail box
+                resultBoxWrapper.style.display = 'block';
+                
+                // 8. [BARU] Tampilkan pesan sukses
+                uploadStatusText.textContent = "File uploaded successfully!";
+                uploadStatusText.classList.add('success');
+                uploadStatusText.style.display = 'block';
+
+            } catch (error) {
+                // 9. [BARU] Tampilkan pesan error
+                loadingSpinner.style.display = 'none';
+                uploadStatusText.textContent = `Error: ${error.message}`;
+                uploadStatusText.classList.add('error');
+                uploadStatusText.style.display = 'block';
+            }
+            
+            // [DIHAPUS] setTimeout untuk menyembunyikan hasil.
+            // Hasil akan tetap tampil.
+            fileInput.value = null; // Tetap reset input file
+        }
+    </script>
+
+</body>
+</html>
