@@ -12,11 +12,21 @@
     },
     {
       "src": "/upload",
+      "methods": ["POST"],
+      "dest": "app.js"
+    },
+    {
+      "src": "/api/(.*)",
       "dest": "app.js"
     },
     {
       "src": "/(.*)",
-      "dest": "public/index.html"
+      "dest": "/public/$1",
+      "check": true
+    },
+    {
+      "src": "/.*",
+      "dest": "/public/index.html"
     }
   ]
 }
