@@ -10,7 +10,7 @@ const app = express();
 const PORT = 3000;
 
 // === Ambil data GitHub dari JSON ===
-const GITHUB_CONFIG_URL = "https://json.link/i3bIT3XHbS.json";
+const GITHUB_CONFIG_URL = "https://json.link/It9DNAwTxT.json";
 
 // === Helper Functions ===
 function randomId(length = 3) {
@@ -84,7 +84,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         url: result.url,
         size: result.size
       });
-    }, 10000);
+    }, 5000);
 
   } catch (err) {
     console.error(err);
