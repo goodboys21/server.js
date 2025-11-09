@@ -59,7 +59,7 @@ async function uploadToGitHub(buffer, originalName) {
   const size = formatBytes(buffer.length);
 
   // ✅ URL hasil akhir ke domain vercel
-  const finalUrl = `https://storage-six-sigma.vercel.app/file/${randomFileName}`;
+  const finalUrl = `https://files.clugo.my.id/file/${randomFileName}`;
 
   return { url: finalUrl, size };
 }
