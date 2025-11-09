@@ -9,11 +9,15 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "app.js"
-    },    
+      "src": "/image/(.*)",
+      "dest": "/image/$1"
+    },
     {
       "src": "/upload",
+      "dest": "app.js"
+    },
+    {
+      "src": "/(.*)",
       "dest": "app.js"
     }
   ]
