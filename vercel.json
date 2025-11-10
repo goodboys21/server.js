@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "name": "server-jees2",
+  "name": "api-payment",
   "builds": [
-    { "src": "app.js", "use": "@vercel/node" },
-    { "src": "public/**", "use": "@vercel/static" }
+    {
+      "src": "app.js",
+      "use": "@vercel/node"
+    }
   ],
   "routes": [
     {
@@ -12,21 +14,11 @@
     },
     {
       "src": "/upload",
-      "methods": ["POST"],
-      "dest": "app.js"
-    },
-    {
-      "src": "/api/(.*)",
       "dest": "app.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/public/$1",
-      "check": true
-    },
-    {
-      "src": "/.*",
-      "dest": "/public/index.html"
+      "dest": "app.js"
     }
   ]
 }
