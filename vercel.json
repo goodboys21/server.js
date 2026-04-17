@@ -20,7 +20,7 @@
     { "src": "^/file/([^?]+)$", "dest": "/file/[data].js" },
     {
       "src": "/(.*)",
-      "dest": "app.js"
+      "dest": "index.html"
     }
   ]
 }
