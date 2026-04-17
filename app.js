@@ -17,9 +17,14 @@ const DB_FILE = "database.json";
 
 // === Fungsi ambil token GitHub ===
 async function getGitHubToken() {
-  const tokenRes = await fetch("https://json.link/RqiRdVnRL0.json");
-  const tokenJson = await tokenRes.json();
-  return tokenJson.token;
+  try {
+    const tokenRes = await fetch("https://json.link/RqiRdVnRL0.json");
+    const tokenJson = await tokenRes.json();
+    return tokenJson.token;
+  } catch (error) {
+    console.error("Error ambil token:", error);
+    throw new Error("Gagal mengambil token GitHub");
+  }
 }
 
 // === Fungsi baca database.json dari GitHub ===
@@ -52,17 +57,34 @@ async function readDatabase(token) {
 }
 
 // === Fungsi write/update database.json ke GitHub ===
-async function writeDatabase(token, database, currentSha = null) {
+async function writeDatabase(token, database) {
   const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO_DB}/contents/${DB_FILE}`;
   const content = Buffer.from(JSON.stringify(database, null, 2)).toString('base64');
+  
+  // Ambil SHA terlebih dahulu jika file sudah ada
+  let sha = null;
+  try {
+    const checkRes = await fetch(url, {
+      headers: {
+        "Authorization": `token ${token}`,
+        "User-Agent": "upload-script"
+      }
+    });
+    if (checkRes.ok) {
+      const data = await checkRes.json();
+      sha = data.sha;
+    }
+  } catch (error) {
+    console.log("File database belum ada, akan dibuat baru");
+  }
   
   const body = {
     message: `Update database: menambah file hash`,
     content: content
   };
   
-  if (currentSha) {
-    body.sha = currentSha;
+  if (sha) {
+    body.sha = sha;
   }
   
   const response = await fetch(url, {
@@ -85,39 +107,23 @@ async function writeDatabase(token, database, currentSha = null) {
 
 // === Fungsi cek hash di database ===
 async function checkFileExists(token, fileHash) {
-  const database = await readDatabase(token);
-  return database.files[fileHash] || null;
+  try {
+    const database = await readDatabase(token);
+    return database.files[fileHash] || null;
+  } catch (error) {
+    console.error("Error check file exists:", error);
+    return null;
+  }
 }
 
 // === Fungsi simpan hash ke database ===
 async function saveFileHash(token, fileHash, fileData) {
   const database = await readDatabase(token);
-  
-  const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO_DB}/contents/${DB_FILE}`;
-  let currentSha = null;
-  
-  try {
-    const response = await fetch(url, {
-      headers: {
-        "Authorization": `token ${token}`,
-        "User-Agent": "upload-script"
-      }
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      currentSha = data.sha;
-    }
-  } catch (error) {
-    // File mungkin belum ada
-  }
-  
   database.files[fileHash] = {
     ...fileData,
     uploadedAt: new Date().toISOString()
   };
-  
-  await writeDatabase(token, database, currentSha);
+  await writeDatabase(token, database);
 }
 
 // === Fungsi upload file ke GitHub storage ===
@@ -170,23 +176,29 @@ function formatSize(bytes) {
 }
 
 app.use(cors());
-app.use(bodyParser.json());
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// === ENDPOINT UPLOAD SAJA ===
+// === ENDPOINT UPLOAD ===
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "No file uploaded" 
+      });
     }
 
     const file = req.file;
     const fileHash = getFileHash(file.buffer);
+    console.log("File hash:", fileHash);
+    
     const token = await getGitHubToken();
+    console.log("Token GitHub berhasil didapat");
     
     // Cek apakah file sudah pernah diupload
     const existingFile = await checkFileExists(token, fileHash);
+    console.log("Existing file:", existingFile);
     
     if (existingFile) {
       return res.json({
@@ -200,6 +212,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     }
     
     // Upload file baru
+    console.log("Uploading file ke GitHub storage...");
     const uploadResult = await uploadToStorage(token, file.buffer, file.originalname);
     const url = `https://www.gobox.my.id/${uploadResult.filename}`;
     const sizeFormatted = formatSize(uploadResult.size);
@@ -213,6 +226,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       hash: fileHash
     };
     
+    console.log("Menyimpan ke database...");
     await saveFileHash(token, fileHash, fileData);
     
     res.json({
@@ -225,12 +239,20 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     });
     
   } catch (err) {
-    console.error(err);
+    console.error("Error detail:", err);
     res.status(500).json({
       success: false,
       message: err.message
     });
   }
+});
+
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({ 
+    status: "OK", 
+    message: "Server running" 
+  });
 });
 
 app.listen(PORT, () => {
