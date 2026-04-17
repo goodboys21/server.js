@@ -35,12 +35,11 @@
             min-height: 100vh;
         }
 
-        /* Navbar Clean */
         nav {
             background: var(--card-bg);
             padding: 1.25rem 2rem;
             display: flex;
-            justify-content: center; /* Center logo since no links */
+            justify-content: center;
             border-bottom: 1px solid var(--border-light);
             position: sticky;
             top: 0;
@@ -67,7 +66,6 @@
             padding: 0 1rem;
         }
 
-        /* Cards */
         .card {
             background: var(--card-bg);
             border-radius: 2rem;
@@ -76,7 +74,6 @@
             border: 1px solid var(--border-light);
         }
 
-        /* Dropzone */
         .upload-area {
             display: flex;
             flex-direction: column;
@@ -116,7 +113,6 @@
             font-weight: 500;
         }
 
-        /* Stats Row */
         .stats-row {
             display: flex;
             flex-wrap: wrap;
@@ -139,7 +135,6 @@
 
         .stat-badge i { color: var(--primary); }
 
-        /* Result Section */
         .result-section {
             display: none;
             margin-top: 1.75rem;
@@ -148,24 +143,66 @@
             animation: fadeSlideUp 0.4s ease;
         }
 
+        /* --- PERBAIKAN SCROLLABLE CODE --- */
         .code-block {
             background: var(--code-bg);
             border-radius: 1.25rem;
             padding: 1.5rem;
             position: relative;
             margin-top: 1rem;
+            overflow-x: auto; /* Aktifkan geser horizontal */
         }
 
         .code-block pre {
             font-family: 'Fira Code', monospace;
             font-size: 0.85rem;
             color: var(--code-text);
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
+            white-space: pre; /* Biarkan memanjang ke samping */
         }
 
-        /* Buttons */
+        .api-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .api-label {
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-dark);
+        }
+
+        .endpoint-box {
+            background: var(--primary-light);
+            border-left: 5px solid var(--primary);
+            padding: 1rem;
+            border-radius: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+            overflow-x: auto; /* Biarkan endpoint bisa digeser jika panjang */
+            white-space: nowrap;
+        }
+
+        .mini-code {
+            background: #f1f5f9;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            border: 1px solid var(--border-light);
+            overflow-x: auto; /* Aktifkan geser horizontal */
+        }
+
+        .mini-code pre {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: #1e293b;
+            white-space: pre; /* Biarkan memanjang ke samping */
+        }
+
         .copy-btn {
             background: var(--primary-light);
             border: 1px solid rgba(0, 98, 255, 0.1);
@@ -179,55 +216,10 @@
             align-items: center;
             gap: 0.4rem;
             transition: 0.2s;
+            flex-shrink: 0;
         }
 
-        .copy-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* API Content */
-        .api-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            margin-bottom: 0.6rem;
-        }
-
-        .api-label {
-            font-weight: 800;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-dark);
-        }
-
-        .endpoint-box {
-            background: var(--primary-light);
-            border-left: 5px solid var(--primary);
-            padding: 1rem;
-            border-radius: 1rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .mini-code {
-            background: #f1f5f9;
-            border-radius: 1rem;
-            padding: 1.25rem;
-            border: 1px solid var(--border-light);
-        }
-
-        .mini-code pre {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
-            color: #1e293b;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
+        .copy-btn:hover { background: var(--primary); color: white; }
 
         @keyframes fadeSlideUp {
             from { opacity: 0; transform: translateY(15px); }
@@ -235,12 +227,6 @@
         }
 
         #file-input { display: none; }
-
-        @media (max-width: 500px) {
-            .card { padding: 1.5rem; }
-            .upload-area { padding: 2.5rem 1rem; }
-            .stat-badge { width: 100%; justify-content: center; }
-        }
     </style>
 </head>
 <body>
@@ -283,11 +269,11 @@
         
         <div class="api-item-header">
             <span class="api-label">Post Endpoint</span>
-            <button class="copy-btn" onclick="copyTextDirect('https://www.gobox.my.id/upload', this)">
+            <button class="copy-btn" id="copyEndpointBtn">
                 <i class="fa-regular fa-copy"></i> Copy
             </button>
         </div>
-        <div class="endpoint-box">https://www.gobox.my.id/upload</div>
+        <div class="endpoint-box" id="endpointBox"></div>
 
         <div class="api-item-header">
             <span class="api-label">cURL Example</span>
@@ -296,8 +282,7 @@
             </button>
         </div>
         <div class="mini-code">
-            <pre id="curlText">curl -X POST https://www.gobox.my.id/upload \
-  -F "file=@yourfile.png"</pre>
+            <pre id="curlText"></pre>
         </div>
 
         <div class="api-item-header">
@@ -317,6 +302,18 @@
 </div>
 
 <script>
+    // --- AUTO DOMAIN HANDLER ---
+    const currentDomain = window.location.origin;
+    const uploadEndpoint = `${currentDomain}/upload`;
+
+    document.getElementById('endpointBox').innerText = uploadEndpoint;
+    document.getElementById('curlText').innerText = `curl -X POST ${uploadEndpoint} \\\n  -F "file=@yourfile.png"`;
+
+    document.getElementById('copyEndpointBtn').onclick = function() {
+        copyTextDirect(uploadEndpoint, this);
+    };
+
+    // --- LOGIC LAINNYA ---
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('file-input');
     const resultSection = document.getElementById('resultSection');
@@ -338,8 +335,6 @@
 
     async function uploadFile(file) {
         if (!file) return;
-
-        // Validasi 5MB
         if (file.size > 5 * 1024 * 1024) {
             alert("File too large! Max size is 5 MB.");
             return;
@@ -353,7 +348,8 @@
         formData.append("file", file);
 
         try {
-            const response = await fetch("https://www.gobox.my.id/upload", { 
+            // Upload ke path relatif /upload
+            const response = await fetch("/upload", { 
                 method: "POST", 
                 body: formData 
             });
@@ -366,7 +362,6 @@
         }
     }
 
-    // Event Handlers
     ['dragenter', 'dragover'].forEach(e => {
         dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add('active'); });
     });
