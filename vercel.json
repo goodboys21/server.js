@@ -6,7 +6,7 @@
       "src": "app.js",
       "use": "@vercel/node"
     },
-    { "src": "qris/**/*.js", "use": "@vercel/node" }
+    { "src": "file/**/*.js", "use": "@vercel/node" }
   ],
   "routes": [
     {
