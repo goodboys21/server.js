@@ -5,7 +5,8 @@
     {
       "src": "app.js",
       "use": "@vercel/node"
-    }
+    },
+    { "src": "qris/**/*.js", "use": "@vercel/node" }
   ],
   "routes": [
     {
@@ -16,6 +17,7 @@
       "src": "/upload",
       "dest": "app.js"
     },
+    { "src": "^/file/([^?]+)$", "dest": "/file/[data].js" },
     {
       "src": "/(.*)",
       "dest": "app.js"
