@@ -4,364 +4,223 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>GoBox | Secure Cloud Upload</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #0062ff;
-            --primary-light: #e6f0ff;
-            --success: #10b981;
-            --bg-body: #f8fafc;
-            --card-bg: #ffffff;
-            --text-dark: #0f172a;
-            --text-mute: #64748b;
-            --border-light: #f1f5f9;
-            --border-dashed: #cbd5e1;
-            --code-bg: #1e293b;
-            --code-text: #7dd3fc;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-dark);
-            line-height: 1.5;
-            min-height: 100vh;
-        }
-
-        nav {
-            background: var(--card-bg);
-            padding: 1.25rem 2rem;
-            display: flex;
-            justify-content: center;
-            border-bottom: 1px solid var(--border-light);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-weight: 800;
-            font-size: 1.4rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            text-decoration: none;
-        }
-
-        .container {
-            max-width: 680px;
-            width: 100%;
-            margin: 2rem auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1.75rem;
-            padding: 0 1rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 2rem;
-            padding: 2.25rem;
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border-light);
-        }
-
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .upload-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 2px dashed var(--border-dashed);
-            border-radius: 1.5rem;
-            padding: 3.5rem 1.5rem;
-            text-align: center;
-            cursor: pointer;
+            border: 2px dashed #cbd5e1;
             transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
-            background: #fafcfd;
-            width: 100%;
         }
-
         .upload-area:hover, .upload-area.active {
-            border-color: var(--primary);
-            background: var(--primary-light);
+            border-color: #0062ff;
+            background: #e6f0ff;
             transform: translateY(-2px);
         }
-
-        .upload-area i {
-            font-size: 3.5rem;
-            color: var(--primary);
-            margin-bottom: 1.25rem;
-        }
-
-        .upload-area h3 {
-            font-size: 1.35rem;
-            font-weight: 800;
-            margin-bottom: 0.4rem;
-        }
-
-        .upload-area p {
-            color: var(--text-mute);
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-
-        .stats-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-top: 2rem;
-        }
-
-        .stat-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #f1f5f9;
-            padding: 0.5rem 1.25rem;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-mute);
-        }
-
-        .stat-badge i { color: var(--primary); }
-
-        .result-section {
-            display: none;
-            margin-top: 1.75rem;
-            border-top: 2px solid var(--border-light);
-            padding-top: 1.5rem;
-            animation: fadeSlideUp 0.4s ease;
-        }
-
-        /* --- PERBAIKAN SCROLLABLE CODE --- */
-        .code-block {
-            background: var(--code-bg);
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-            position: relative;
-            margin-top: 1rem;
-            overflow-x: auto; /* Aktifkan geser horizontal */
-        }
-
-        .code-block pre {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            color: var(--code-text);
-            white-space: pre; /* Biarkan memanjang ke samping */
-        }
-
-        .api-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            margin-bottom: 0.6rem;
-        }
-
-        .api-label {
-            font-weight: 800;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            color: var(--text-dark);
-        }
-
-        .endpoint-box {
-            background: var(--primary-light);
-            border-left: 5px solid var(--primary);
-            padding: 1rem;
-            border-radius: 1rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            color: var(--primary);
-            font-weight: 600;
-            overflow-x: auto; /* Biarkan endpoint bisa digeser jika panjang */
-            white-space: nowrap;
-        }
-
-        .mini-code {
-            background: #f1f5f9;
-            border-radius: 1rem;
-            padding: 1.25rem;
-            border: 1px solid var(--border-light);
-            overflow-x: auto; /* Aktifkan geser horizontal */
-        }
-
-        .mini-code pre {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
-            color: #1e293b;
-            white-space: pre; /* Biarkan memanjang ke samping */
-        }
-
-        .copy-btn {
-            background: var(--primary-light);
-            border: 1px solid rgba(0, 98, 255, 0.1);
-            color: var(--primary);
-            padding: 0.4rem 0.8rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            transition: 0.2s;
-            flex-shrink: 0;
-        }
-
-        .copy-btn:hover { background: var(--primary); color: white; }
-
-        @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        #file-input { display: none; }
+        .code-font { font-family: 'Fira Code', monospace; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body>
+<body class="min-h-screen pb-10">
 
-<nav>
-    <a href="#" class="logo"><i class="fa-solid fa-box-archive"></i> GoBox</a>
+<nav class="bg-white border-b border-gray-100 p-5 flex justify-center sticky top-0 z-50">
+    <a href="#" class="text-2xl font-extrabold text-[#0062ff] flex items-center gap-2">
+        <i class="fa-solid fa-box-archive"></i> GoBox
+    </a>
 </nav>
 
-<div class="container">
-    <main class="card">
-        <label for="file-input" class="upload-area" id="dropzone">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-            <h3>Drop file or click here</h3>
-            <p>Support upload all file types</p>
+<div class="max-w-[680px] mx-auto px-4 mt-8 flex flex-col gap-6">
+    <main class="bg-white rounded-[2rem] p-8 shadow-xl shadow-gray-200/50 border border-gray-100">
+        <label id="dropzone" class="upload-area flex flex-col items-center justify-center rounded-2xl p-14 text-center cursor-pointer bg-[#fafcfd] w-full">
+            <i class="fa-solid fa-cloud-arrow-up text-5xl text-[#0062ff] mb-5"></i>
+            <h3 class="text-xl font-extrabold mb-1">Drop file or click here</h3>
+            <p class="text-gray-500 font-medium text-sm">Support upload all file types</p>
+            <input type="file" id="file-input" class="hidden">
         </label>
-        <input type="file" id="file-input">
 
-        <div class="stats-row">
-            <span class="stat-badge"><i class="fa-solid fa-weight-hanging"></i> Max 5 MB</span>
-            <span class="stat-badge"><i class="fa-solid fa-bolt"></i> Fast CDN</span>
-            <span class="stat-badge"><i class="fa-regular fa-clock"></i> Permanent</span>
+        <div class="flex flex-wrap justify-center gap-3 mt-8">
+            <span class="inline-flex items-center gap-2 bg-gray-100 px-5 py-2 rounded-full text-xs font-bold text-gray-500">
+                <i class="fa-solid fa-weight-hanging text-[#0062ff]"></i> Max 5 MB
+            </span>
+            <span class="inline-flex items-center gap-2 bg-gray-100 px-5 py-2 rounded-full text-xs font-bold text-gray-500">
+                <i class="fa-solid fa-bolt text-[#0062ff]"></i> Fast CDN
+            </span>
+            <span class="inline-flex items-center gap-2 bg-gray-100 px-5 py-2 rounded-full text-xs font-bold text-gray-500">
+                <i class="fa-regular fa-clock text-[#0062ff]"></i> Permanent
+            </span>
         </div>
 
-        <div class="result-section" id="resultSection">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 800; font-size: 0.95rem;"><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> SERVER RESPONSE</span>
-                <button class="copy-btn" onclick="copyText('jsonOutput', this)">
-                    <i class="fa-regular fa-copy"></i> Copy JSON
-                </button>
+        <div id="progressSection" class="hidden mt-8 pt-6 border-t-2 border-gray-50">
+            <div class="w-full">
+                <div class="mb-2 flex justify-between">
+                    <span class="text-sm font-bold text-gray-700">Uploading to server...</span>
+                    <span id="percentText" class="text-sm font-bold text-[#0062ff]">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden">
+                    <div id="progressBar" class="bg-[#0062ff] h-5 rounded-full text-[10px] font-bold text-white flex items-center justify-center transition-all duration-300" style="width: 0%">0%</div>
+                </div>
             </div>
-            <div class="code-block">
-                <pre id="jsonOutput">// Awaiting upload...</pre>
+        </div>
+
+        <div id="resultCard" class="hidden mt-8 pt-6 border-t-2 border-gray-50 animate-in fade-in duration-500">
+            <div class="bg-green-50 border border-green-100 rounded-2xl p-5">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="bg-green-500 text-white p-2 rounded-full flex items-center justify-center w-8 h-8">
+                        <i class="fa-solid fa-check text-sm"></i>
+                    </div>
+                    <span class="font-extrabold text-green-800">Upload Successful!</span>
+                </div>
+                
+                <div class="flex flex-col gap-3">
+                    <input type="text" id="resultUrl" readonly class="w-full bg-white border border-green-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none">
+                    <div class="flex gap-2">
+                        <button onclick="copyResult()" class="flex-1 bg-[#0062ff] text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-regular fa-copy"></i> Copy Link
+                        </button>
+                        <a id="openLink" target="_blank" class="flex-1 bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
-    <section class="card api-card">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem;"><i class="fa-solid fa-code"></i> API Integration</h2>
-        <p style="font-size: 0.9rem; color: var(--text-mute); margin-bottom: 0.5rem;">Quickly integrate our storage into your workflow.</p>
+    <section class="bg-white rounded-[2rem] p-8 shadow-xl shadow-gray-200/50 border border-gray-100">
+        <h2 class="text-xl font-extrabold flex items-center gap-3 mb-2"><i class="fa-solid fa-code text-[#0062ff]"></i> API Integration</h2>
+        <p class="text-gray-500 text-sm font-medium mb-6">Automate your uploads using our simple REST API.</p>
         
-        <div class="api-item-header">
-            <span class="api-label">Post Endpoint</span>
-            <button class="copy-btn" id="copyEndpointBtn">
-                <i class="fa-regular fa-copy"></i> Copy
-            </button>
-        </div>
-        <div class="endpoint-box" id="endpointBox"></div>
+        <div class="space-y-5">
+            <div>
+                <div class="flex justify-between items-center mb-2 font-extrabold text-[10px] uppercase tracking-wider text-gray-400">
+                    <span>Post Endpoint</span>
+                    <button onclick="copyStatic('endpointTxt', this)" class="text-[#0062ff] hover:underline cursor-pointer"><i class="fa-regular fa-copy"></i> Copy</button>
+                </div>
+                <div id="endpointTxt" class="bg-blue-50 border-l-4 border-[#0062ff] p-4 rounded-r-xl text-[#0062ff] font-bold text-sm overflow-x-auto hide-scroll whitespace-nowrap code-font"></div>
+            </div>
 
-        <div class="api-item-header">
-            <span class="api-label">cURL Example</span>
-            <button class="copy-btn" onclick="copyText('curlText', this)">
-                <i class="fa-regular fa-copy"></i> Copy
-            </button>
-        </div>
-        <div class="mini-code">
-            <pre id="curlText"></pre>
-        </div>
+            <div>
+                <div class="flex justify-between items-center mb-2 font-extrabold text-[10px] uppercase tracking-wider text-gray-400">
+                    <span>cURL Example</span>
+                    <button onclick="copyStatic('curlTxt', this)" class="text-[#0062ff] hover:underline cursor-pointer"><i class="fa-regular fa-copy"></i> Copy</button>
+                </div>
+                <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl overflow-x-auto hide-scroll">
+                    <pre id="curlTxt" class="text-xs text-gray-700 code-font whitespace-pre"></pre>
+                </div>
+            </div>
 
-        <div class="api-item-header">
-            <span class="api-label">Example Response</span>
-            <button class="copy-btn" onclick="copyText('jsonExample', this)">
-                <i class="fa-regular fa-copy"></i> Copy
-            </button>
-        </div>
-        <div class="mini-code" style="background: #1e293b; border: none;">
-            <pre id="jsonExample" style="color: #7dd3fc;">{
+            <div>
+                <div class="flex justify-between items-center mb-2 font-extrabold text-[10px] uppercase tracking-wider text-gray-400">
+                    <span>Response Format</span>
+                </div>
+                <div class="bg-[#1e293b] p-4 rounded-xl overflow-x-auto hide-scroll">
+                    <pre class="text-xs text-[#7dd3fc] code-font">{
   "success": true,
-  "url": "https://www.gobox.my.id/file/X7Drd.jpg",
+  "url": "https://gobox.my.id/file/X7Drd.jpg",
   "size": "0.01 MB"
 }</pre>
+                </div>
+            </div>
         </div>
     </section>
 </div>
 
 <script>
-    // --- AUTO DOMAIN HANDLER ---
     const currentDomain = window.location.origin;
-    const uploadEndpoint = `${currentDomain}/upload`;
+    const uploadPath = `${currentDomain}/upload`;
 
-    document.getElementById('endpointBox').innerText = uploadEndpoint;
-    document.getElementById('curlText').innerText = `curl -X POST ${uploadEndpoint} \\\n  -F "file=@yourfile.png"`;
+    // Setup Docs
+    document.getElementById('endpointTxt').innerText = uploadPath;
+    document.getElementById('curlTxt').innerText = `curl -X POST ${uploadPath} \\\n  -F "file=@yourfile.png"`;
 
-    document.getElementById('copyEndpointBtn').onclick = function() {
-        copyTextDirect(uploadEndpoint, this);
-    };
-
-    // --- LOGIC LAINNYA ---
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('file-input');
-    const resultSection = document.getElementById('resultSection');
-    const jsonOutput = document.getElementById('jsonOutput');
+    const progressSection = document.getElementById('progressSection');
+    const progressBar = document.getElementById('progressBar');
+    const percentText = document.getElementById('percentText');
+    const resultCard = document.getElementById('resultCard');
+    const resultUrl = document.getElementById('resultUrl');
+    const openLink = document.getElementById('openLink');
 
-    async function copyText(id, btn) {
-        const text = document.getElementById(id).innerText;
-        await copyTextDirect(text, btn);
-    }
-
-    async function copyTextDirect(text, btn) {
-        try {
-            await navigator.clipboard.writeText(text);
-            const original = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-            setTimeout(() => btn.innerHTML = original, 2000);
-        } catch (err) { console.error(err); }
-    }
+    // Fix 2x click: Input sudah di dalam label, jadi cukup biarkan browser yang handle.
+    // Kita hanya dengarkan perubahan pada input.
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) uploadFile(e.target.files[0]);
+    });
 
     async function uploadFile(file) {
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            alert("File too large! Max size is 5 MB.");
-            return;
-        }
+        if (file.size > 5 * 1024 * 1024) { alert("File too large (Max 5MB)"); return; }
 
-        resultSection.style.display = 'block';
-        jsonOutput.textContent = "// Processing upload...";
-        jsonOutput.style.color = "#94a3b8";
+        // Reset UI
+        resultCard.classList.add('hidden');
+        progressSection.classList.remove('hidden');
+        updateProgress(0);
 
         const formData = new FormData();
         formData.append("file", file);
 
-        try {
-            // Upload ke path relatif /upload
-            const response = await fetch("/upload", { 
-                method: "POST", 
-                body: formData 
-            });
-            const data = await response.json();
-            jsonOutput.textContent = JSON.stringify(data, null, 2);
-            jsonOutput.style.color = response.ok ? "#7dd3fc" : "#fda4af";
-        } catch (err) {
-            jsonOutput.textContent = JSON.stringify({ success: false, message: err.message }, null, 2);
-            jsonOutput.style.color = "#fda4af";
-        }
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/upload", true);
+
+        // Track Progress
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                updateProgress(percent);
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                const res = JSON.parse(xhr.responseText);
+                if (res.success) {
+                    showResult(res.url);
+                } else {
+                    alert("Upload failed: " + res.message);
+                }
+            } else {
+                alert("Server Error");
+            }
+            progressSection.classList.add('hidden');
+        };
+
+        xhr.onerror = () => {
+            alert("Connection error");
+            progressSection.classList.add('hidden');
+        };
+
+        xhr.send(formData);
     }
 
+    function updateProgress(val) {
+        progressBar.style.width = val + "%";
+        progressBar.innerText = val + "%";
+        percentText.innerText = val + "%";
+    }
+
+    function showResult(url) {
+        resultUrl.value = url;
+        openLink.href = url;
+        resultCard.classList.remove('hidden');
+        fileInput.value = ''; // Reset input
+    }
+
+    async function copyResult() {
+        await navigator.clipboard.writeText(resultUrl.value);
+        alert("Link copied to clipboard!");
+    }
+
+    async function copyStatic(id, btn) {
+        await navigator.clipboard.writeText(document.getElementById(id).innerText);
+        const old = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+        setTimeout(() => btn.innerHTML = old, 2000);
+    }
+
+    // Drag & Drop
     ['dragenter', 'dragover'].forEach(e => {
         dropzone.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add('active'); });
     });
@@ -371,12 +230,6 @@
             dropzone.classList.remove('active');
             if (e === 'drop' && ev.dataTransfer.files.length) uploadFile(ev.dataTransfer.files[0]);
         });
-    });
-
-    dropzone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) uploadFile(e.target.files[0]);
-        fileInput.value = '';
     });
 </script>
 </body>
